@@ -28,6 +28,7 @@ void ATask8PlayerController::BeginPlay()
 	Super::BeginPlay();
 }
 
+// Possess 이후, InputComponent 생성 시점에 호출
 void ATask8PlayerController::SetupInputComponent()
 {
 	// set up gameplay key bindings
@@ -36,23 +37,17 @@ void ATask8PlayerController::SetupInputComponent()
 	// Add Input Mapping Context
 	if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(GetLocalPlayer()))
 	{
-		Subsystem->AddMappingContext(DefaultMappingContext, 0);
+		Subsystem->AddMappingContext(InputMappingContext, 0);
 	}
 
 	// Set up action bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(InputComponent))
 	{
 		// Setup mouse input events
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Started, this, &ATask8PlayerController::OnInputStarted);
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Triggered, this, &ATask8PlayerController::OnSetDestinationTriggered);
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Completed, this, &ATask8PlayerController::OnSetDestinationReleased);
-		EnhancedInputComponent->BindAction(SetDestinationClickAction, ETriggerEvent::Canceled, this, &ATask8PlayerController::OnSetDestinationReleased);
-
-		// Setup touch input events
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Started, this, &ATask8PlayerController::OnInputStarted);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Triggered, this, &ATask8PlayerController::OnTouchTriggered);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Completed, this, &ATask8PlayerController::OnTouchReleased);
-		EnhancedInputComponent->BindAction(SetDestinationTouchAction, ETriggerEvent::Canceled, this, &ATask8PlayerController::OnTouchReleased);
+		EnhancedInputComponent->BindAction(ClickAction, ETriggerEvent::Started, this, &ATask8PlayerController::OnInputStarted);
+		EnhancedInputComponent->BindAction(ClickAction, ETriggerEvent::Triggered, this, &ATask8PlayerController::OnSetDestinationTriggered);
+		EnhancedInputComponent->BindAction(ClickAction, ETriggerEvent::Completed, this, &ATask8PlayerController::OnSetDestinationReleased);
+		EnhancedInputComponent->BindAction(ClickAction, ETriggerEvent::Canceled, this, &ATask8PlayerController::OnSetDestinationReleased);
 	}
 	else
 	{
@@ -73,15 +68,7 @@ void ATask8PlayerController::OnSetDestinationTriggered()
 	
 	// We look for the location in the world where the player has pressed the input
 	FHitResult Hit;
-	bool bHitSuccessful = false;
-	if (bIsTouch)
-	{
-		bHitSuccessful = GetHitResultUnderFinger(ETouchIndex::Touch1, ECollisionChannel::ECC_Visibility, true, Hit);
-	}
-	else
-	{
-		bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
-	}
+	bool bHitSuccessful = GetHitResultUnderCursor(ECollisionChannel::ECC_Visibility, true, Hit);
 
 	// If we hit a surface, cache the location
 	if (bHitSuccessful)
@@ -109,17 +96,4 @@ void ATask8PlayerController::OnSetDestinationReleased()
 	}
 
 	FollowTime = 0.f;
-}
-
-// Triggered every frame when the input is held down
-void ATask8PlayerController::OnTouchTriggered()
-{
-	bIsTouch = true;
-	OnSetDestinationTriggered();
-}
-
-void ATask8PlayerController::OnTouchReleased()
-{
-	bIsTouch = false;
-	OnSetDestinationReleased();
 }

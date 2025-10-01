@@ -10,6 +10,8 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Materials/Material.h"
 #include "Engine/World.h"
+#include "EnhancedInputComponent.h"
+#include "Task8/Task8PlayerController.h"
 
 ATask8Character::ATask8Character()
 {
@@ -43,9 +45,104 @@ ATask8Character::ATask8Character()
 	// Activate ticking in order to update the cursor every frame.
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
+
+	NormalSpeed = 600.0f;
+	SprintSpeedMultiplier = 1.5f;
+	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 }
 
 void ATask8Character::Tick(float DeltaSeconds)
 {
     Super::Tick(DeltaSeconds);
+}
+
+void ATask8Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+{
+	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	// Enhanced InputComponent로 캐스팅
+	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
+	{
+		// IA를 가져오기 위해 현재 소유 중인 Controller를 ASpartaPlayerController로 캐스팅
+		if (ATask8PlayerController* PlayerController = Cast<ATask8PlayerController>(GetController()))
+		{
+			if (UInputAction* JumpAction = PlayerController->GetJumpAction())
+			{
+				// IA_Jump 액션 키를 "키를 누르고 있는 동안" StartJump() 호출
+				EnhancedInput->BindAction(
+					JumpAction,
+					ETriggerEvent::Triggered,
+					this,
+					&ATask8Character::StartJump
+				);
+
+				// IA_Jump 액션 키에서 "손을 뗀 순간" StopJump() 호출
+				EnhancedInput->BindAction(
+					JumpAction,
+					ETriggerEvent::Completed,
+					this,
+					&ATask8Character::StopJump
+				);
+			}
+
+			if (UInputAction* SprintAction = PlayerController->GetSprintAction())
+			{
+				// IA_Sprint 액션 키를 "누르고 있는 동안" StartSprint() 호출
+				EnhancedInput->BindAction(
+					SprintAction,
+					ETriggerEvent::Triggered,
+					this,
+					&ATask8Character::StartSprint
+				);
+				// IA_Sprint 액션 키에서 "손을 뗀 순간" StopSprint() 호출
+				EnhancedInput->BindAction(
+					SprintAction,
+					ETriggerEvent::Completed,
+					this,
+					&ATask8Character::StopSprint
+				);
+			}
+		}
+	}
+}
+
+void ATask8Character::Landed(const FHitResult& Hit)
+{
+	bJumping = false;
+}
+
+void ATask8Character::StartJump(const FInputActionValue& value)
+{
+	if (value.Get<bool>() == true)
+	{
+		bJumping = true;
+		Jump();
+	}
+}
+
+void ATask8Character::StopJump(const FInputActionValue& value)
+{
+	if (value.Get<bool>() == false)
+	{
+		StopJumping();
+	}
+}
+
+void ATask8Character::StartSprint(const FInputActionValue& value)
+{
+	if (GetCharacterMovement() &&
+		bJumping == false)
+	{
+		bSprinting = true;
+		GetCharacterMovement()->MaxWalkSpeed = SprintSpeed;
+	}
+}
+
+void ATask8Character::StopSprint(const FInputActionValue& value)
+{
+	if (GetCharacterMovement())
+	{
+		bSprinting = false;
+		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	}
 }
