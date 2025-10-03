@@ -8,6 +8,10 @@ public class Task8 : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
-        PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "NavigationSystem", "AIModule", "Niagara", "EnhancedInput" });
+        PublicDependencyModuleNames.AddRange(new string[] { 
+			"Core", "CoreUObject", "Engine", "InputCore", 
+			"NavigationSystem", "AIModule", "Niagara", "EnhancedInput",
+            "GameplayAbilities", "GameplayTags", "GameplayTasks"
+        });
     }
 }

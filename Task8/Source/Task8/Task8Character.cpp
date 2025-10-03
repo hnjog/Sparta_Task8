@@ -12,6 +12,9 @@
 #include "Engine/World.h"
 #include "EnhancedInputComponent.h"
 #include "Task8/Task8PlayerController.h"
+#include "Abilities/GameplayAbility.h"
+#include "AbilitySystemComponent.h"
+#include "GAS/TaskAttributeSet.h"
 
 ATask8Character::ATask8Character()
 {
@@ -49,6 +52,24 @@ ATask8Character::ATask8Character()
 	NormalSpeed = 600.0f;
 	SprintSpeedMultiplier = 1.5f;
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+
+	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+	AttrSet = CreateDefaultSubobject<UTaskAttributeSet>(TEXT("AttrSet"));
+}
+
+void ATask8Character::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (ASC)
+	{
+		ASC->InitAbilityActorInfo(this, this);
+
+		if (FireAbilityClass)
+		{
+			ASC->GiveAbility(FGameplayAbilitySpec(FireAbilityClass, 1, /*InputID*/0, this));
+		}
+	}
 }
 
 void ATask8Character::Tick(float DeltaSeconds)
@@ -63,12 +84,10 @@ void ATask8Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	// Enhanced InputComponent로 캐스팅
 	if (UEnhancedInputComponent* EnhancedInput = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		// IA를 가져오기 위해 현재 소유 중인 Controller를 ASpartaPlayerController로 캐스팅
 		if (ATask8PlayerController* PlayerController = Cast<ATask8PlayerController>(GetController()))
 		{
 			if (UInputAction* JumpAction = PlayerController->GetJumpAction())
 			{
-				// IA_Jump 액션 키를 "키를 누르고 있는 동안" StartJump() 호출
 				EnhancedInput->BindAction(
 					JumpAction,
 					ETriggerEvent::Triggered,
@@ -76,7 +95,6 @@ void ATask8Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 					&ATask8Character::StartJump
 				);
 
-				// IA_Jump 액션 키에서 "손을 뗀 순간" StopJump() 호출
 				EnhancedInput->BindAction(
 					JumpAction,
 					ETriggerEvent::Completed,
@@ -87,20 +105,29 @@ void ATask8Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 
 			if (UInputAction* SprintAction = PlayerController->GetSprintAction())
 			{
-				// IA_Sprint 액션 키를 "누르고 있는 동안" StartSprint() 호출
 				EnhancedInput->BindAction(
 					SprintAction,
 					ETriggerEvent::Triggered,
 					this,
 					&ATask8Character::StartSprint
 				);
-				// IA_Sprint 액션 키에서 "손을 뗀 순간" StopSprint() 호출
 				EnhancedInput->BindAction(
 					SprintAction,
 					ETriggerEvent::Completed,
 					this,
 					&ATask8Character::StopSprint
 				);
+			}
+
+			if (UInputAction* FireAction = PlayerController->GetFireAction())
+			{
+				EnhancedInput->BindAction(
+					FireAction,
+					ETriggerEvent::Started,
+					this,
+					&ATask8Character::OnFirePressed
+				);
+
 			}
 		}
 	}
@@ -144,5 +171,14 @@ void ATask8Character::StopSprint(const FInputActionValue& value)
 	{
 		bSprinting = false;
 		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
+	}
+}
+
+void ATask8Character::OnFirePressed()
+{
+	if (ASC && FireAbilityClass)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Test Fire 1!"));
+		ASC->TryActivateAbilityByClass(FireAbilityClass);
 	}
 }

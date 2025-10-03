@@ -24,6 +24,7 @@ public:
 
 	FORCEINLINE UInputAction* GetJumpAction() const { return JumpAction; }
 	FORCEINLINE UInputAction* GetSprintAction() const { return SprintAction; }
+	FORCEINLINE UInputAction* GetFireAction() const { return FireAction; }
 protected:
 	/** True if the controlled character should navigate to the mouse cursor. */
 	uint32 bMoveToMouseCursor : 1;
@@ -62,6 +63,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<UInputAction> SprintAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Input", meta = (AllowPrivateAccess = "true"))
+	TObjectPtr<UInputAction> FireAction;
 };
 
 

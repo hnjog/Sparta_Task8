@@ -16,11 +16,11 @@ class ATask8Character : public ACharacter
 public:
 	ATask8Character();
 
-	// Called every frame.
-	virtual void Tick(float DeltaSeconds) override;
-
+	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	virtual void Landed(const FHitResult& Hit) override;
+
+	virtual void Tick(float DeltaSeconds) override;
 
 public:
 
@@ -41,6 +41,9 @@ public:
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
 protected:
+	void OnFirePressed();
+
+protected:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class UCameraComponent> TopDownCameraComponent;
@@ -48,6 +51,15 @@ protected:
 	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> CameraBoom;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
+	TObjectPtr <class UAbilitySystemComponent> ASC;
+
+	UPROPERTY()
+	TObjectPtr<class UTaskAttributeSet> AttrSet;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Ability")
+	TSubclassOf<class UGameplayAbility> FireAbilityClass;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Movement")
 	float NormalSpeed;
