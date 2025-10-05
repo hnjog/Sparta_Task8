@@ -25,6 +25,9 @@ public:
 public:
 
 	UFUNCTION()
+	void Move(const FInputActionValue& value);
+
+	UFUNCTION()
 	void StartJump(const FInputActionValue& value);
 	UFUNCTION()
 	void StopJump(const FInputActionValue& value);

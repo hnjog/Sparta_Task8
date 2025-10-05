@@ -86,6 +86,17 @@ void ATask8Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 	{
 		if (ATask8PlayerController* PlayerController = Cast<ATask8PlayerController>(GetController()))
 		{
+			if (UInputAction* MoveAction = PlayerController->GetMoveAction())
+			{
+				// IA_Move 액션 키를 "키를 누르고 있는 동안" Move() 호출
+				EnhancedInput->BindAction(
+					MoveAction,
+					ETriggerEvent::Triggered,
+					this,
+					&ATask8Character::Move
+				);
+			}
+
 			if (UInputAction* JumpAction = PlayerController->GetJumpAction())
 			{
 				EnhancedInput->BindAction(
@@ -136,6 +147,29 @@ void ATask8Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComp
 void ATask8Character::Landed(const FHitResult& Hit)
 {
 	bJumping = false;
+}
+
+void ATask8Character::Move(const FInputActionValue& value)
+{
+	if (Controller == nullptr)
+		return;
+
+	const FVector2D MoveValue = value.Get<FVector2D>();
+
+	const float YValue = GetControlRotation().Yaw;
+	const FRotator YawRot(0.f, YValue, 0.f);
+
+	if (FMath::IsNearlyZero(MoveValue.X) == false)
+	{
+		const FVector Forward = FRotationMatrix(YawRot).GetUnitAxis(EAxis::X);
+		AddMovementInput(Forward, MoveValue.X);
+	}
+
+	if (FMath::IsNearlyZero(MoveValue.Y) == false)
+	{
+		const FVector Right = FRotationMatrix(YawRot).GetUnitAxis(EAxis::Y);
+		AddMovementInput(Right, MoveValue.Y);
+	}
 }
 
 void ATask8Character::StartJump(const FInputActionValue& value)
