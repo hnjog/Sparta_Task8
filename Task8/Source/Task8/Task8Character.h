@@ -71,6 +71,12 @@ protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Movement")
 	float SprintSpeed;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Weapon")
+	TSubclassOf<AActor> PistolClass;
+
+	UPROPERTY() 
+	TObjectPtr<AActor> EquippedPistol;
+
 	bool bJumping;
 	bool bSprinting;
 };

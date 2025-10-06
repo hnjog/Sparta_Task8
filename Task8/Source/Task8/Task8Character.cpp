@@ -69,6 +69,23 @@ void ATask8Character::BeginPlay()
 			ASC->GiveAbility(FGameplayAbilitySpec(FireAbilityClass, 1, /*InputID*/0, this));
 		}
 	}
+
+	if (PistolClass && GetMesh())
+	{
+		FActorSpawnParameters P; 
+		P.Owner = this; 
+		P.Instigator = this;
+		EquippedPistol = GetWorld()->SpawnActor<AActor>(PistolClass, GetActorTransform(), P);
+		if (EquippedPistol)
+		{
+			USkeletalMeshComponent* WeaponMesh = EquippedPistol->FindComponentByClass<USkeletalMeshComponent>();
+			WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			EquippedPistol->AttachToComponent(GetMesh(),
+				FAttachmentTransformRules::SnapToTargetNotIncludingScale,
+				TEXT("weapon_r")); // 캐릭터 소켓명
+			EquippedPistol->GetRootComponent()->SetRelativeRotation(FRotator(0, -100, 0));
+		}
+	}
 }
 
 void ATask8Character::Tick(float DeltaSeconds)
