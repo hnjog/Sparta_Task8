@@ -11,7 +11,8 @@ public class Task8 : ModuleRules
         PublicDependencyModuleNames.AddRange(new string[] { 
 			"Core", "CoreUObject", "Engine", "InputCore", 
 			"NavigationSystem", "AIModule", "Niagara", "EnhancedInput",
-            "GameplayAbilities", "GameplayTags", "GameplayTasks"
+            "GameplayAbilities", "GameplayTags", "GameplayTasks",
+			"PhysicsCore",
         });
     }
 }

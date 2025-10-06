@@ -7,6 +7,7 @@
 #include "GameFramework/Character.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "DrawDebugHelpers.h"
+#include "../Weapon/WeaponBase.h"
 
 UGA_Fire::UGA_Fire()
 {
@@ -16,11 +17,19 @@ UGA_Fire::UGA_Fire()
 
 void UGA_Fire::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FGameplayAbilityActorInfo* Info, const FGameplayAbilityActivationInfo ActivationInfo, const FGameplayEventData* TriggerEventData)
 {
-	// 비용 적용, 쿨다운 처리 등을 위하여 호출
-	//
-	CommitAbility(Handle, Info, ActivationInfo);
+	if (bCanFire == false)
+	{
+		EndAbility(Handle, Info, ActivationInfo, true, false);
+		return;
+	}
 
-    UE_LOG(LogTemp, Warning, TEXT("Test Fire 2!"));
+	bCanFire = false;
+
+	if (CommitAbility(Handle, Info, ActivationInfo) == false)
+	{
+		EndAbility(Handle, Info, ActivationInfo, true, false);
+		return;
+	}
 
 	AActor* Avatar = Info ? Info->AvatarActor.Get() : nullptr;
 	if (Avatar == nullptr)
@@ -29,42 +38,68 @@ void UGA_Fire::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 		return;
 	}
 
-    FVector Start = Avatar->GetActorLocation();
-    FVector Dir = Avatar->GetActorForwardVector(); // 기본값
-    // 캐릭터면 카메라/Eye 또는 소켓 기준
-    if (ACharacter* C = Cast<ACharacter>(Avatar))
-    {
-        if (USkeletalMeshComponent* Mesh = C->GetMesh())
-        {
-            if (Mesh->DoesSocketExist(MuzzleSocketName))
-                Start = Mesh->GetSocketLocation(MuzzleSocketName);
-        }
-    }
+	TArray<FVector> Points, Normals;
+	TArray<TEnumAsByte<EPhysicalSurface>> Surfaces;
 
-    FVector End = Start + Dir * TraceDistance;
+	FVector Start = Avatar->GetActorLocation();
+	FVector Dir = Avatar->GetActorForwardVector(); // 기본값
 
-    FHitResult Hit;
-    FCollisionQueryParams P(SCENE_QUERY_STAT(GA_Fire), /*bTraceComplex=*/true);
-    P.AddIgnoredActor(Avatar);
+	Points.Add(Start);
+	Normals.Add(FVector::ZeroVector);
+	Surfaces.Add(SurfaceType_Default);
 
-    bool bHit = Avatar->GetWorld()->LineTraceSingleByChannel(
-        Hit, Start, End, ECC_Visibility, P);
+	// 캐릭터면 카메라/Eye 또는 소켓 기준
+	if (ACharacter* C = Cast<ACharacter>(Avatar))
+	{
+		if (USkeletalMeshComponent* Mesh = C->GetMesh())
+		{
+			if (Mesh->DoesSocketExist(MuzzleSocketName))
+			{
+				Start = Mesh->GetSocketLocation(MuzzleSocketName);
+				if (AActor* Weapon = Cast<AActor>(GetSourceObject(Handle, Info)))
+					Dir = Weapon->GetActorForwardVector();
+			}
+		}
+	}
 
-    // 디버그 라인(선택)
-    // DrawDebugLine(Avatar->GetWorld(), Start, bHit ? Hit.ImpactPoint : End, FColor::Red, false, 1.f, 0, 1.f);
+	FVector End = Start + Dir * TraceDistance;
 
-    if (bHit && DamageEffectClass)
-    {
-        if (UAbilitySystemComponent* TargetASC =
-            UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Hit.GetActor()))
-        {
-            FGameplayEffectSpecHandle Spec = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);
-            if (Spec.IsValid())
-            {
-                TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
-            }
-        }
-    }
+	FHitResult Hit;
+	FCollisionQueryParams P(SCENE_QUERY_STAT(GA_Fire), /*bTraceComplex=*/true);
+	P.AddIgnoredActor(Avatar);
 
-    EndAbility(Handle, Info, ActivationInfo, true, false);
+	bool bHit = Avatar->GetWorld()->LineTraceSingleByChannel(
+		Hit, Start, End, ECC_Visibility, P);
+
+	if (bHit)
+	{
+		Points.Add(Hit.ImpactPoint);
+		Normals.Add(Hit.ImpactNormal);
+		Surfaces.Add(UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get()));
+
+		if (DamageEffectClass)
+		{
+			if (UAbilitySystemComponent* TargetASC =
+				UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Hit.GetActor()))
+			{
+				FGameplayEffectSpecHandle Spec = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);
+				if (Spec.IsValid())
+				{
+					TargetASC->ApplyGameplayEffectSpecToSelf(*Spec.Data.Get());
+				}
+			}
+		}
+	}
+
+	if (AWeaponBase* Weapon = Cast<AWeaponBase>(GetSourceObject(Handle, Info)))
+	{
+		Weapon->K2_OnFire(Points, Normals, Surfaces);
+	}
+
+	GetWorld()->GetTimerManager().SetTimer(FireTimer, [this]()
+		{
+			bCanFire = true;
+		}, FireInterval, false);
+
+	EndAbility(Handle, Info, ActivationInfo, true, false);
 }

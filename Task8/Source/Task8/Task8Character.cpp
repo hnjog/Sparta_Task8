@@ -63,11 +63,6 @@ void ATask8Character::BeginPlay()
 	if (ASC)
 	{
 		ASC->InitAbilityActorInfo(this, this);
-
-		if (FireAbilityClass)
-		{
-			ASC->GiveAbility(FGameplayAbilitySpec(FireAbilityClass, 1, /*InputID*/0, this));
-		}
 	}
 
 	if (PistolClass && GetMesh())
@@ -85,6 +80,11 @@ void ATask8Character::BeginPlay()
 				TEXT("weapon_r")); // 캐릭터 소켓명
 			EquippedPistol->GetRootComponent()->SetRelativeRotation(FRotator(0, -100, 0));
 		}
+	}
+
+	if (ASC && FireAbilityClass && EquippedPistol)
+	{
+		ASC->GiveAbility(FGameplayAbilitySpec(FireAbilityClass, 1, /*InputID*/0, EquippedPistol));
 	}
 }
 
@@ -248,9 +248,12 @@ void ATask8Character::StopSprint(const FInputActionValue& value)
 
 void ATask8Character::OnFirePressed()
 {
+	if (bJumping ||
+		bSprinting)
+		return;
+
 	if (ASC && FireAbilityClass)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Test Fire 1!"));
 		ASC->TryActivateAbilityByClass(FireAbilityClass);
 	}
 }

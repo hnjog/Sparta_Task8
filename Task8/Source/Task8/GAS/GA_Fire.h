@@ -27,6 +27,12 @@ public:
     UPROPERTY(EditDefaultsOnly, Category = "Fire")
     float TraceDistance = 10000.f;
 
+    UPROPERTY(EditDefaultsOnly) 
+    float FireInterval = 0.1f;
+
+    FTimerHandle FireTimer;
+    bool bCanFire = true;
+
 protected:
     virtual void ActivateAbility(
         const FGameplayAbilitySpecHandle Handle,
