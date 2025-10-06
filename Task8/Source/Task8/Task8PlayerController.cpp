@@ -16,7 +16,7 @@ DEFINE_LOG_CATEGORY(LogTemplateCharacter);
 
 ATask8PlayerController::ATask8PlayerController()
 {
-	bShowMouseCursor = false;
+	bShowMouseCursor = true;
 	DefaultMouseCursor = EMouseCursor::Default;
 }
 

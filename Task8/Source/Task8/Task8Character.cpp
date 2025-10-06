@@ -26,8 +26,7 @@ ATask8Character::ATask8Character()
 	bUseControllerRotationYaw = false;
 	bUseControllerRotationRoll = false;
 
-	// Configure character movement
-	GetCharacterMovement()->bOrientRotationToMovement = true; // Rotate character to moving direction
+	GetCharacterMovement()->bOrientRotationToMovement = false;
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 640.f, 0.f);
 	GetCharacterMovement()->bConstrainToPlane = true;
 	GetCharacterMovement()->bSnapToPlaneAtStart = true;
@@ -74,7 +73,29 @@ void ATask8Character::BeginPlay()
 
 void ATask8Character::Tick(float DeltaSeconds)
 {
-    Super::Tick(DeltaSeconds);
+	Super::Tick(DeltaSeconds);
+
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (PC == nullptr)
+		return;
+
+	// 커서 아래 충돌 검사 (채널은 프로젝트에 맞춰 수정: ECC_Visibility 등)
+	FHitResult Hit;
+	const bool bHit = PC->GetHitResultUnderCursor(ECC_Visibility, /*bTraceComplex=*/false, Hit);
+	if (!bHit)
+		return;
+
+	// 캐릭터에서 커서 지점까지 2D 방향(Yaw만)
+	FVector To = Hit.ImpactPoint - GetActorLocation();
+	To.Z = 0.f;
+
+	if (!To.IsNearlyZero())
+	{
+		const FRotator DesiredRot = To.Rotation();
+		const FRotator TargetRot(0.f, DesiredRot.Yaw, 0.f);
+		const FRotator NewRot = FMath::RInterpTo(GetActorRotation(), TargetRot, DeltaSeconds, 15.f); // 15는 회전 속도(보간)
+		SetActorRotation(NewRot);
+	}
 }
 
 void ATask8Character::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
