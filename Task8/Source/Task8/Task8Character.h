@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "GameplayEffectTypes.h"
 #include "GameFramework/Character.h"
 #include "Task8Character.generated.h"
 
@@ -46,6 +47,10 @@ public:
 protected:
 	void OnFirePressed();
 
+	void OnHealthChanged(const FOnAttributeChangeData& Data);
+
+	void Dead();
+
 protected:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -57,9 +62,6 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr <class UAbilitySystemComponent> ASC;
-
-	UPROPERTY()
-	TObjectPtr<class UTaskAttributeSet> AttrSet;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TSubclassOf<class UGameplayAbility> FireAbilityClass;
@@ -77,7 +79,14 @@ protected:
 	UPROPERTY() 
 	TObjectPtr<AActor> EquippedPistol;
 
-	bool bJumping;
-	bool bSprinting;
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
+	float StartHealth = 100.f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Death")
+	float RagdollLifeTime = 3.0f;
+
+	bool bJumping = false;
+	bool bSprinting = false;
+	bool bIsDead = false;
 };
 

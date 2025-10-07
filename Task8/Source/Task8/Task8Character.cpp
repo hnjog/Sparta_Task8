@@ -53,7 +53,6 @@ ATask8Character::ATask8Character()
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
-	AttrSet = CreateDefaultSubobject<UTaskAttributeSet>(TEXT("AttrSet"));
 }
 
 void ATask8Character::BeginPlay()
@@ -63,6 +62,14 @@ void ATask8Character::BeginPlay()
 	if (ASC)
 	{
 		ASC->InitAbilityActorInfo(this, this);
+
+		ASC->InitAbilityActorInfo(this, this);
+
+		if (ASC)
+		{
+			const FGameplayAttribute HealthAttr = UTaskAttributeSet::GetHealthAttribute();
+			ASC->SetNumericAttributeBase(HealthAttr, StartHealth);
+		}
 	}
 
 	if (PistolClass && GetMesh())
@@ -85,7 +92,62 @@ void ATask8Character::BeginPlay()
 	if (ASC && FireAbilityClass && EquippedPistol)
 	{
 		ASC->GiveAbility(FGameplayAbilitySpec(FireAbilityClass, 1, /*InputID*/0, EquippedPistol));
+
+		const FGameplayAttribute HealthAttr = UTaskAttributeSet::GetHealthAttribute();
+		ASC->SetNumericAttributeBase(HealthAttr, StartHealth);
+
+		ASC->GetGameplayAttributeValueChangeDelegate(HealthAttr)
+			.AddUObject(this, &ATask8Character::OnHealthChanged);
 	}
+}
+
+void ATask8Character::OnHealthChanged(const FOnAttributeChangeData& Data)
+{
+	if (bIsDead)
+		return;
+
+	const float NewHealth = Data.NewValue;
+
+	if (NewHealth <= 0.f)
+	{
+		Dead();
+	}
+	else if (NewHealth < Data.OldValue)
+	{
+		bJumping = true;
+		Jump();
+	}
+}
+
+void ATask8Character::Dead()
+{
+	if (bIsDead)
+		return;
+	bIsDead = true;
+
+	GetCharacterMovement()->DisableMovement();
+	if (Controller)
+	{
+		Controller->StopMovement();
+	}
+
+	// 컨트롤러와의 연결 끊기
+	DetachFromControllerPendingDestroy();
+
+	if (USkeletalMeshComponent* MeshComp = GetMesh())
+	{
+		MeshComp->SetCollisionProfileName(TEXT("Ragdoll"));
+		MeshComp->SetSimulatePhysics(true);
+		MeshComp->WakeAllRigidBodies();
+		MeshComp->bBlendPhysics = true;
+	}
+
+	if (UCapsuleComponent* Capsule = GetCapsuleComponent())
+	{
+		Capsule->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	}
+
+	SetLifeSpan(RagdollLifeTime);
 }
 
 void ATask8Character::Tick(float DeltaSeconds)
