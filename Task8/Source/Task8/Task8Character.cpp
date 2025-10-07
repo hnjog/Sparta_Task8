@@ -108,6 +108,9 @@ void ATask8Character::OnHealthChanged(const FOnAttributeChangeData& Data)
 
 	const float NewHealth = Data.NewValue;
 
+	UE_LOG(LogTemp, Warning, TEXT("Player Now Hp : %f"), NewHealth);
+	UE_LOG(LogTemp, Warning, TEXT("Player Prev Hp : %f"), Data.OldValue);
+
 	if (NewHealth <= 0.f)
 	{
 		Dead();

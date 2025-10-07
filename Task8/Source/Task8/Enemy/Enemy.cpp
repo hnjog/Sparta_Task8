@@ -56,6 +56,7 @@ void AEnemy::BeginPlay()
 	{
 		Capsule->SetCollisionProfileName(TEXT("Pawn"));
 		Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
+		Capsule->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 		Capsule->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnCapsuleBeginOverlap);
 		Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 		Capsule->SetGenerateOverlapEvents(true);
@@ -91,6 +92,9 @@ void AEnemy::OnHealthChanged(const FOnAttributeChangeData& Data)
 		return;
 
 	const float NewHealth = Data.NewValue;
+
+	UE_LOG(LogTemp, Warning, TEXT("Enemy Now Hp : %f"), NewHealth);
+	UE_LOG(LogTemp, Warning, TEXT("Enemy Prev Hp : %f"), Data.OldValue);
 
 	if (NewHealth < Data.OldValue)
 	{
