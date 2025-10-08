@@ -35,6 +35,7 @@ AEnemy::AEnemy()
 	GetCharacterMovement()->RotationRate = FRotator(0.f, 720.f, 0.f);
 
 	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+	AttributeSet = CreateDefaultSubobject<UTaskAttributeSet>(TEXT("AttributeSet"));
 }
 
 // Called when the game starts or when spawned

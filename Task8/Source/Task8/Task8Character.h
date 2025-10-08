@@ -51,6 +51,11 @@ protected:
 
 	void Dead();
 
+
+	UFUNCTION()
+	void OnAnyDamageTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+		AController* InstigatedBy, AActor* DamageCauser);
+
 protected:
 	/** Top down camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
@@ -62,6 +67,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr <class UAbilitySystemComponent> ASC;
+
+	UPROPERTY()
+	TObjectPtr<class UTaskAttributeSet> AttributeSet;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Ability")
 	TSubclassOf<class UGameplayAbility> FireAbilityClass;

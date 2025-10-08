@@ -77,10 +77,12 @@ void UGA_Fire::ActivateAbility(const FGameplayAbilitySpecHandle Handle, const FG
 		Normals.Add(Hit.ImpactNormal);
 		Surfaces.Add(UPhysicalMaterial::DetermineSurfaceType(Hit.PhysMaterial.Get()));
 
-		if (DamageEffectClass)
+		AActor* TargetActor = Hit.GetActor();
+
+		if (TargetActor && DamageEffectClass)
 		{
 			if (UAbilitySystemComponent* TargetASC =
-				UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Hit.GetActor()))
+				UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(TargetActor))
 			{
 				FGameplayEffectSpecHandle Spec = MakeOutgoingGameplayEffectSpec(DamageEffectClass, 1.f);
 				if (Spec.IsValid())

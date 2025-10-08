@@ -53,23 +53,23 @@ ATask8Character::ATask8Character()
 	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
 
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
+	AttributeSet = CreateDefaultSubobject<UTaskAttributeSet>(TEXT("AttributeSet"));
 }
 
 void ATask8Character::BeginPlay()
 {
 	Super::BeginPlay();
 
+	OnTakeAnyDamage.AddDynamic(this, &ATask8Character::OnAnyDamageTaken);
+
 	if (ASC)
 	{
 		ASC->InitAbilityActorInfo(this, this);
+		const FGameplayAttribute HealthAttr = UTaskAttributeSet::GetHealthAttribute();
+		ASC->SetNumericAttributeBase(HealthAttr, StartHealth);
 
-		ASC->InitAbilityActorInfo(this, this);
-
-		if (ASC)
-		{
-			const FGameplayAttribute HealthAttr = UTaskAttributeSet::GetHealthAttribute();
-			ASC->SetNumericAttributeBase(HealthAttr, StartHealth);
-		}
+		ASC->GetGameplayAttributeValueChangeDelegate(HealthAttr)
+			.AddUObject(this, &ATask8Character::OnHealthChanged);
 	}
 
 	if (PistolClass && GetMesh())
@@ -92,12 +92,6 @@ void ATask8Character::BeginPlay()
 	if (ASC && FireAbilityClass && EquippedPistol)
 	{
 		ASC->GiveAbility(FGameplayAbilitySpec(FireAbilityClass, 1, /*InputID*/0, EquippedPistol));
-
-		const FGameplayAttribute HealthAttr = UTaskAttributeSet::GetHealthAttribute();
-		ASC->SetNumericAttributeBase(HealthAttr, StartHealth);
-
-		ASC->GetGameplayAttributeValueChangeDelegate(HealthAttr)
-			.AddUObject(this, &ATask8Character::OnHealthChanged);
 	}
 }
 
@@ -151,6 +145,16 @@ void ATask8Character::Dead()
 	}
 
 	SetLifeSpan(RagdollLifeTime);
+}
+
+void ATask8Character::OnAnyDamageTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
+	AController* InstigatedBy, AActor* DamageCauser)
+{
+	if (bIsDead || Damage <= 0.f || !ASC)
+		return;
+
+	const FGameplayAttribute HealthAttr = UTaskAttributeSet::GetHealthAttribute();
+	ASC->ApplyModToAttributeUnsafe(HealthAttr, EGameplayModOp::Additive, -Damage);
 }
 
 void ATask8Character::Tick(float DeltaSeconds)

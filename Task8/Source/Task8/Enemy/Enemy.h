@@ -32,7 +32,6 @@ protected:
 
     void OnHealthChanged(const FOnAttributeChangeData& Data);
 
-    // 일반 데미지 이벤트로 들어오면 -> GAS Health로 반영
     UFUNCTION()
     void OnAnyDamageTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
         AController* InstigatedBy, AActor* DamageCauser);
@@ -53,6 +52,10 @@ public:
 protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
     TObjectPtr<UAbilitySystemComponent> AbilitySystem = nullptr;
+
+
+    UPROPERTY()
+    TObjectPtr<class UTaskAttributeSet> AttributeSet = nullptr;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Move")
     float BaseSpeed = 250.f;
