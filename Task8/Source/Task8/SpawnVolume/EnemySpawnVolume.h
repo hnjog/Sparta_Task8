@@ -21,6 +21,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Spawning")
 	AActor* SpawnEnemyRandomPos();
 
+	UFUNCTION(BlueprintCallable, Category = "Spawning")
+	void SpawnEnemy();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Spawning")
 	TObjectPtr<USceneComponent> Scene;

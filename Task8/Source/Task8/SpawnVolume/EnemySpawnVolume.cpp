@@ -38,3 +38,9 @@ AActor* AEnemySpawnVolume::SpawnEnemyRandomPos()
         FRotator::ZeroRotator
     );
 }
+
+
+void AEnemySpawnVolume::SpawnEnemy()
+{
+    SpawnEnemyRandomPos();
+}

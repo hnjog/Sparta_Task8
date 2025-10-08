@@ -13,5 +13,16 @@ UCLASS()
 class TASK8_API UTaskGameInstance : public UGameInstance
 {
 	GENERATED_BODY()
-	
+
+public:
+	UTaskGameInstance();
+
+	UFUNCTION(BlueprintCallable, Category = "GameData")
+	void AddToScore(int32 Amount);
+
+	FORCEINLINE int32 GetTotalScore() { return TotalScore; }
+
+protected:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameData")
+	int32 TotalScore;
 };

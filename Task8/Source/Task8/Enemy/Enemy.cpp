@@ -113,7 +113,7 @@ void AEnemy::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	if (bIsDead)
+	if (bIsDead && GetCharacterMovement()->IsFalling())
 		return;
 
 	if (!TargetPlayer) 

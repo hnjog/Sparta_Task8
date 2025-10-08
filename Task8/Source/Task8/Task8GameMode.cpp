@@ -4,6 +4,7 @@
 #include "Task8PlayerController.h"
 #include "Task8Character.h"
 #include "UObject/ConstructorHelpers.h"
+#include "GameFramework/GameState.h"
 
 ATask8GameMode::ATask8GameMode()
 {
@@ -22,5 +23,11 @@ ATask8GameMode::ATask8GameMode()
 	if(PlayerControllerBPClass.Class != NULL)
 	{
 		PlayerControllerClass = PlayerControllerBPClass.Class;
+	}
+
+	static ConstructorHelpers::FClassFinder<AGameState> GameStateBPClass(TEXT("/Game/TopDown/Blueprints/BP_TaskGameState"));
+	if (GameStateBPClass.Class != NULL)
+	{
+		GameStateClass = GameStateBPClass.Class;
 	}
 }

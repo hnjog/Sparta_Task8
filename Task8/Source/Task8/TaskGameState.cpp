@@ -2,4 +2,82 @@
 
 
 #include "TaskGameState.h"
+#include "SpawnVolume/EnemySpawnVolume.h"
+#include "TaskGameInstance.h"
+#include "Task8PlayerController.h"
+#include "Kismet/GameplayStatics.h"
 
+ATaskGameState::ATaskGameState()
+{
+	LevelDuration = 20.0f; // 한 레벨당 30초
+	SpawnEnemyDuration = 3.0f;
+	CurrentLevelIndex = 0;
+}
+
+void ATaskGameState::BeginPlay()
+{
+	Super::BeginPlay();
+
+	StartLevel();
+}
+
+void ATaskGameState::AddScore(int32 Amount)
+{
+	if (UGameInstance* GameInstance = GetGameInstance())
+	{
+		if (UTaskGameInstance* TaskGameI = Cast<UTaskGameInstance>(GameInstance))
+		{
+			TaskGameI->AddToScore(Amount);
+		}
+	}
+}
+
+void ATaskGameState::OnGameOver()
+{
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (ATask8PlayerController* TPC = Cast<ATask8PlayerController>(PC))
+		{
+			TPC->SetPause(true);
+		}
+	}
+}
+
+void ATaskGameState::StartLevel()
+{
+	TArray<AActor*> FoundVolumes;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemySpawnVolume::StaticClass(), FoundVolumes);
+
+	if (AEnemySpawnVolume* ESV = Cast<AEnemySpawnVolume>(FoundVolumes[0]))
+	{
+		GetWorldTimerManager().SetTimer(
+			SpawnEnemyTimerHandle,
+			ESV,
+			&AEnemySpawnVolume::SpawnEnemy,
+			SpawnEnemyDuration,
+			true, 
+			0.0f
+		);
+	}
+
+	/*GetWorldTimerManager().SetTimer(
+		LevelTimerHandle,
+		this,
+		&ATaskGameState::OnLevelTimeUp,
+		LevelDuration,
+		false
+	);*/
+
+}
+
+void ATaskGameState::OnLevelTimeUp()
+{
+	EndLevel();
+}
+
+void ATaskGameState::EndLevel()
+{
+	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
+	GetWorldTimerManager().ClearTimer(SpawnEnemyTimerHandle);
+	CurrentLevelIndex++;
+}
