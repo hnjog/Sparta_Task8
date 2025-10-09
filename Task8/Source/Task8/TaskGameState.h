@@ -23,6 +23,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Score")
 	void AddScore(int32 Amount);
 
+	UFUNCTION(BlueprintCallable, Category = "Item")
+	void SpawnItem(const FVector& EnemyPos);
+
 	UFUNCTION(BlueprintCallable, Category = "Level")
 	void OnGameOver();
 
@@ -41,6 +44,9 @@ protected:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	int32 CurrentLevelIndex;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Item")
+	TObjectPtr<class AItemSpawnManager> ItemSpawnManagerObj;
 
 	FTimerHandle LevelTimerHandle;
 	FTimerHandle SpawnEnemyTimerHandle;

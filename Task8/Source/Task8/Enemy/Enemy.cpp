@@ -6,11 +6,10 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "../TaskGameState.h"
 
-// Sets default values
 AEnemy::AEnemy()
 {
-	// Set this character to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
 
 	ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshAsset(TEXT("/Game/Characters/Robot_scout_R_21/Mesh/SK_Robot_scout_R21.SK_Robot_scout_R21"));
@@ -182,7 +181,19 @@ void AEnemy::Die(bool bFromSelfDestruct)
 {
 	if (bIsDead)
 		return;
+
 	bIsDead = true;
+
+	if (bFromSelfDestruct == false)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (ATaskGameState* GameState = World->GetGameState<ATaskGameState>())
+			{
+				GameState->SpawnItem(GetActorLocation());
+			}
+		}
+	}
 
 	GetCharacterMovement()->DisableMovement();
 	if (Controller)

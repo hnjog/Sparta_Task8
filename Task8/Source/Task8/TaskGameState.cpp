@@ -6,6 +6,7 @@
 #include "TaskGameInstance.h"
 #include "Task8PlayerController.h"
 #include "Kismet/GameplayStatics.h"
+#include "Item/ItemSpawnManager.h"
 
 ATaskGameState::ATaskGameState()
 {
@@ -29,6 +30,14 @@ void ATaskGameState::AddScore(int32 Amount)
 		{
 			TaskGameI->AddToScore(Amount);
 		}
+	}
+}
+
+void ATaskGameState::SpawnItem(const FVector& EnemyPos)
+{
+	if (ItemSpawnManagerObj)
+	{
+		ItemSpawnManagerObj->SpawnRandomItem(EnemyPos);
 	}
 }
 
@@ -59,6 +68,10 @@ void ATaskGameState::StartLevel()
 			0.0f
 		);
 	}
+
+	TArray<AActor*> FoundItemManager;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemSpawnManager::StaticClass(), FoundItemManager);
+	ItemSpawnManagerObj = Cast<AItemSpawnManager>(FoundItemManager[0]);
 
 	/*GetWorldTimerManager().SetTimer(
 		LevelTimerHandle,
