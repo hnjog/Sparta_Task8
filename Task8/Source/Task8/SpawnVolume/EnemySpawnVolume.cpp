@@ -13,6 +13,8 @@ AEnemySpawnVolume::AEnemySpawnVolume()
 
     SpawningBox = CreateDefaultSubobject<UBoxComponent>(TEXT("SpawningBox"));
     SpawningBox->SetupAttachment(Scene);
+    SpawningBox->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+    SpawningBox->SetCollisionEnabled(ECollisionEnabled::QueryOnly);
 }
 
 FVector AEnemySpawnVolume::GetRandomPointInVolume() const
