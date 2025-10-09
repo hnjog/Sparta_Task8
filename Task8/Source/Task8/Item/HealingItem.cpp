@@ -14,17 +14,22 @@ AHealingItem::AHealingItem()
 void AHealingItem::ActivateItem(AActor* Activator)
 {
     Super::ActivateItem(Activator);
-    //if (Activator && Activator->ActorHasTag("Player"))
-    //{
-    //    // 점수 획득 디버그 메시지
-    //    GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Player gained %d HP!"), HealAmount));
+    if (HealEffectClass &&
+        Activator &&
+        Activator->ActorHasTag("Player"))
+    {
+        GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Player gained %d HP!"), HealAmount));
 
-    //    if (ATaskPlayer* Player = Cast<ATaskPlayer>(Activator))
-    //    {
-    //        Player->HealHealth(HealAmount);
-    //    }
+		if (UAbilitySystemComponent* ActASC =
+			UAbilitySystemGlobals::GetAbilitySystemComponentFromActor(Activator))
+		{
+            FGameplayEffectContextHandle Ctx = ActASC->MakeEffectContext();
 
-    //    // 부모 클래스 (BaseItem)에 정의된 아이템 파괴 함수 호출
-    //    DestroyItem();
-    //}
+            const UGameplayEffect* GE = HealEffectClass->GetDefaultObject<UGameplayEffect>();
+
+            ActASC->ApplyGameplayEffectToSelf(GE, 1.f, Ctx);
+		}
+
+        DestroyItem();
+    }
 }

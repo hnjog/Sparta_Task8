@@ -22,4 +22,7 @@ public:
 public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Item")
 	float HealAmount;
+
+	UPROPERTY(EditDefaultsOnly, Category = "Heal")
+	TSubclassOf<class UGameplayEffect> HealEffectClass;
 };
