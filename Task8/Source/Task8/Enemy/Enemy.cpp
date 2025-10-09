@@ -59,34 +59,12 @@ void AEnemy::BeginPlay()
 		Capsule->SetCollisionResponseToChannel(ECC_Pawn, ECR_Overlap);
 		Capsule->SetCollisionResponseToChannel(ECC_Visibility, ECR_Block);
 		Capsule->OnComponentBeginOverlap.AddDynamic(this, &AEnemy::OnCapsuleBeginOverlap);
-
-		Capsule->OnComponentHit.AddDynamic(this, &AEnemy::OnHitGround);
-
-		Capsule->SetNotifyRigidBodyCollision(true);
-		Capsule->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
-		Capsule->SetGenerateOverlapEvents(true);
-		Capsule->SetSimulatePhysics(true);
 	}
-
-	GetCharacterMovement()->GravityScale = 1.f;
-	GetCharacterMovement()->SetMovementMode(MOVE_Falling);
 
 	if (Controller == nullptr)
 	{
 		SpawnDefaultController();
 	}
-}
-
-void AEnemy::OnHitGround(UPrimitiveComponent* HitComp, AActor* OtherActor,
-	UPrimitiveComponent* OtherComp, FVector NormalImpulse, const FHitResult& Hit)
-{
-	GetCapsuleComponent()->SetSimulatePhysics(false);
-	GetCapsuleComponent()->SetNotifyRigidBodyCollision(false);
-	GetMesh()->SetSimulatePhysics(false);
-	SetActorEnableCollision(true);
-
-	GetCharacterMovement()->StopMovementImmediately();
-	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
 }
 
 void AEnemy::InitASCAndAttributes()
