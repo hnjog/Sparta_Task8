@@ -1,48 +1,33 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ItemSpawnVolume.h"
-#include "Components/BoxComponent.h"
+#include "ItemSpawnManager.h"
 #include "Engine/World.h"
 #include "GameFramework/Actor.h"
 
 // Sets default values
-AItemSpawnVolume::AItemSpawnVolume()
+AItemSpawnManager::AItemSpawnManager()
 	:ItemDataTable(nullptr)
 {
 	Scene = CreateDefaultSubobject<USceneComponent>(TEXT("Scene"));
 	SetRootComponent(Scene);
-
-	SpawningBox = CreateDefaultSubobject<UBoxComponent>(TEXT("SpawningBox"));
-	SpawningBox->SetupAttachment(Scene);
 }
 
-AActor* AItemSpawnVolume::SpawnRandomItem()
+AActor* AItemSpawnManager::SpawnRandomItem(const FVector& PosVector)
 {
 	if (FItemSpawnRow* SelectedRow = GetRandomItem())
 	{
 		if (UClass* ActualClass = SelectedRow->ItemClass.Get())
 		{
-			return SpawnItem(ActualClass);
+			return SpawnItem(ActualClass,PosVector);
 		}
 	}
 
 	return nullptr;
 }
 
-FVector AItemSpawnVolume::GetRandomPointInVolume() const
-{
-	FVector BoxExtent = SpawningBox->GetScaledBoxExtent();
-	FVector BoxOrigin = SpawningBox->GetComponentLocation();
 
-	return BoxOrigin + FVector(
-		FMath::FRandRange(-BoxExtent.X, BoxExtent.X),
-		FMath::FRandRange(-BoxExtent.Y, BoxExtent.Y),
-		FMath::FRandRange(-BoxExtent.Z, BoxExtent.Z)
-	);
-}
-
-FItemSpawnRow* AItemSpawnVolume::GetRandomItem() const
+FItemSpawnRow* AItemSpawnManager::GetRandomItem() const
 {
 	if (!ItemDataTable)
 		return nullptr;
@@ -82,13 +67,14 @@ FItemSpawnRow* AItemSpawnVolume::GetRandomItem() const
 	return nullptr;
 }
 
-AActor* AItemSpawnVolume::SpawnItem(TSubclassOf<AActor> ItemClass)
+AActor* AItemSpawnManager::SpawnItem(TSubclassOf<AActor> ItemClass, const FVector& PosVector)
 {
-	if (!ItemClass) return nullptr;
+	if (!ItemClass) 
+		return nullptr;
 
 	return GetWorld()->SpawnActor<AActor>(
 		ItemClass,
-		GetRandomPointInVolume(),
+		PosVector,
 		FRotator::ZeroRotator
 	);
 }
