@@ -11,13 +11,18 @@
 ATaskGameState::ATaskGameState()
 {
 	LevelDuration = 20.0f; // 한 레벨당 30초
-	SpawnEnemyDuration = 3.0f;
+	RestDuration = 5.0f; // 쉬는 시간 5초
+	SpawnEnemyDuration = 10.0f;
 	CurrentLevelIndex = 0;
 }
 
 void ATaskGameState::BeginPlay()
 {
 	Super::BeginPlay();
+
+	TArray<AActor*> FoundItemManager;
+	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemSpawnManager::StaticClass(), FoundItemManager);
+	ItemSpawnManagerObj = Cast<AItemSpawnManager>(FoundItemManager[0]);
 
 	StartLevel();
 }
@@ -54,32 +59,32 @@ void ATaskGameState::OnGameOver()
 
 void ATaskGameState::StartLevel()
 {
+	GetWorldTimerManager().ClearTimer(RestTimerHandle);
+
 	TArray<AActor*> FoundVolumes;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemySpawnVolume::StaticClass(), FoundVolumes);
 
 	if (AEnemySpawnVolume* ESV = Cast<AEnemySpawnVolume>(FoundVolumes[0]))
 	{
+		float levelSpawnDuration = FMath::Clamp(SpawnEnemyDuration - (CurrentLevelIndex - 1), 0.5f, 20.0f);
+
 		GetWorldTimerManager().SetTimer(
 			SpawnEnemyTimerHandle,
 			ESV,
 			&AEnemySpawnVolume::SpawnEnemy,
-			SpawnEnemyDuration,
-			true, 
+			levelSpawnDuration,
+			true,
 			0.0f
 		);
 	}
 
-	TArray<AActor*> FoundItemManager;
-	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemSpawnManager::StaticClass(), FoundItemManager);
-	ItemSpawnManagerObj = Cast<AItemSpawnManager>(FoundItemManager[0]);
-
-	/*GetWorldTimerManager().SetTimer(
+	GetWorldTimerManager().SetTimer(
 		LevelTimerHandle,
 		this,
 		&ATaskGameState::OnLevelTimeUp,
 		LevelDuration,
 		false
-	);*/
+	);
 
 }
 
@@ -93,4 +98,12 @@ void ATaskGameState::EndLevel()
 	GetWorldTimerManager().ClearTimer(LevelTimerHandle);
 	GetWorldTimerManager().ClearTimer(SpawnEnemyTimerHandle);
 	CurrentLevelIndex++;
+
+	GetWorldTimerManager().SetTimer(
+		RestTimerHandle,
+		this,
+		&ATaskGameState::StartLevel,
+		RestDuration,
+		false
+	);
 }

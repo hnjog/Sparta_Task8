@@ -44,6 +44,14 @@ public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 
+	UFUNCTION(BlueprintImplementableEvent)
+	void SpeedEffectOrigin();
+
+	UFUNCTION(BlueprintImplementableEvent)
+	void SpeedEffectDecrease();
+
+	void DecreaseSpeed(float decreaseSpeed, float decreaseDuration);
+
 protected:
 	void OnFirePressed();
 
@@ -51,6 +59,7 @@ protected:
 
 	void Dead();
 
+	void SetOriginSpeed();
 
 	UFUNCTION()
 	void OnAnyDamageTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
@@ -92,6 +101,8 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Death")
 	float RagdollLifeTime = 3.0f;
+
+	FTimerHandle SpeedTimerHandle;
 
 	bool bJumping = false;
 	bool bSprinting = false;

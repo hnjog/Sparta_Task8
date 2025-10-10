@@ -48,10 +48,6 @@ ATask8Character::ATask8Character()
 	PrimaryActorTick.bCanEverTick = true;
 	PrimaryActorTick.bStartWithTickEnabled = true;
 
-	NormalSpeed = 600.0f;
-	SprintSpeedMultiplier = 1.5f;
-	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
-
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	AttributeSet = CreateDefaultSubobject<UTaskAttributeSet>(TEXT("AttributeSet"));
 }
@@ -59,6 +55,8 @@ ATask8Character::ATask8Character()
 void ATask8Character::BeginPlay()
 {
 	Super::BeginPlay();
+
+	SetOriginSpeed();
 
 	OnTakeAnyDamage.AddDynamic(this, &ATask8Character::OnAnyDamageTaken);
 
@@ -145,6 +143,15 @@ void ATask8Character::Dead()
 	}
 
 	SetLifeSpan(RagdollLifeTime);
+}
+
+void ATask8Character::SetOriginSpeed()
+{
+	NormalSpeed = 600.0f;
+	SprintSpeedMultiplier = 1.5f;
+	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+
+	SpeedEffectOrigin();
 }
 
 void ATask8Character::OnAnyDamageTaken(AActor* DamagedActor, float Damage, const UDamageType* DamageType,
@@ -313,6 +320,21 @@ void ATask8Character::StopSprint(const FInputActionValue& value)
 		bSprinting = false;
 		GetCharacterMovement()->MaxWalkSpeed = NormalSpeed;
 	}
+}
+
+void ATask8Character::DecreaseSpeed(float decreaseSpeed, float decreaseDuration)
+{
+	NormalSpeed -= decreaseSpeed;
+	SprintSpeed = NormalSpeed * SprintSpeedMultiplier;
+	GetWorldTimerManager().SetTimer(
+		SpeedTimerHandle,
+		this,
+		&ATask8Character::SetOriginSpeed,
+		decreaseDuration,
+		false
+	);
+
+	SpeedEffectDecrease();
 }
 
 void ATask8Character::OnFirePressed()
