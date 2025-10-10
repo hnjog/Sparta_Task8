@@ -7,11 +7,12 @@
 #include "Task8PlayerController.h"
 #include "Kismet/GameplayStatics.h"
 #include "Item/ItemSpawnManager.h"
+#include "Components/TextBlock.h"
+#include "Blueprint/UserWidget.h"
 
 ATaskGameState::ATaskGameState()
 {
 	LevelDuration = 20.0f; // 한 레벨당 30초
-	RestDuration = 5.0f; // 쉬는 시간 5초
 	SpawnEnemyDuration = 10.0f;
 	CurrentLevelIndex = 0;
 }
@@ -22,9 +23,20 @@ void ATaskGameState::BeginPlay()
 
 	TArray<AActor*> FoundItemManager;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AItemSpawnManager::StaticClass(), FoundItemManager);
-	ItemSpawnManagerObj = Cast<AItemSpawnManager>(FoundItemManager[0]);
+	if (FoundItemManager.Num() > 0)
+	{
+		ItemSpawnManagerObj = Cast<AItemSpawnManager>(FoundItemManager[0]);
+	}
 
 	StartLevel();
+
+	GetWorldTimerManager().SetTimer(
+		HUDUpdateTimerHandle,
+		this,
+		&ATaskGameState::UpdateHUD,
+		0.1f,
+		true
+	);
 }
 
 void ATaskGameState::AddScore(int32 Amount)
@@ -53,29 +65,39 @@ void ATaskGameState::OnGameOver()
 		if (ATask8PlayerController* TPC = Cast<ATask8PlayerController>(PC))
 		{
 			TPC->SetPause(true);
+			TPC->ShowMainMenu(true);
 		}
 	}
 }
 
 void ATaskGameState::StartLevel()
 {
-	GetWorldTimerManager().ClearTimer(RestTimerHandle);
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (ATask8PlayerController* TPC = Cast<ATask8PlayerController>(PC))
+		{
+			TPC->ShowGameHUD();
+		}
+	}
 
 	TArray<AActor*> FoundVolumes;
 	UGameplayStatics::GetAllActorsOfClass(GetWorld(), AEnemySpawnVolume::StaticClass(), FoundVolumes);
 
-	if (AEnemySpawnVolume* ESV = Cast<AEnemySpawnVolume>(FoundVolumes[0]))
+	if (FoundVolumes.Num() > 0)
 	{
-		float levelSpawnDuration = FMath::Clamp(SpawnEnemyDuration - (CurrentLevelIndex - 1), 0.5f, 20.0f);
+		if (AEnemySpawnVolume* ESV = Cast<AEnemySpawnVolume>(FoundVolumes[0]))
+		{
+			float levelSpawnDuration = FMath::Clamp(SpawnEnemyDuration - (CurrentLevelIndex - 1), 0.5f, 20.0f);
 
-		GetWorldTimerManager().SetTimer(
-			SpawnEnemyTimerHandle,
-			ESV,
-			&AEnemySpawnVolume::SpawnEnemy,
-			levelSpawnDuration,
-			true,
-			0.0f
-		);
+			GetWorldTimerManager().SetTimer(
+				SpawnEnemyTimerHandle,
+				ESV,
+				&AEnemySpawnVolume::SpawnEnemy,
+				levelSpawnDuration,
+				true,
+				0.0f
+			);
+		}
 	}
 
 	GetWorldTimerManager().SetTimer(
@@ -86,6 +108,7 @@ void ATaskGameState::StartLevel()
 		false
 	);
 
+	UpdateHUD();
 }
 
 void ATaskGameState::OnLevelTimeUp()
@@ -99,11 +122,40 @@ void ATaskGameState::EndLevel()
 	GetWorldTimerManager().ClearTimer(SpawnEnemyTimerHandle);
 	CurrentLevelIndex++;
 
-	GetWorldTimerManager().SetTimer(
-		RestTimerHandle,
-		this,
-		&ATaskGameState::StartLevel,
-		RestDuration,
-		false
-	);
+	StartLevel();
+}
+
+void ATaskGameState::UpdateHUD()
+{
+	if (APlayerController* PC = GetWorld()->GetFirstPlayerController())
+	{
+		if (ATask8PlayerController* TPC = Cast<ATask8PlayerController>(PC))
+		{
+			if (UUserWidget* HUDWidget = TPC->GetHUDWidget())
+			{
+				if (UTextBlock* TimeText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Time"))))
+				{
+					float RemainingTime = GetWorldTimerManager().GetTimerRemaining(LevelTimerHandle);
+					TimeText->SetText(FText::FromString(FString::Printf(TEXT("Time: %.1f"), RemainingTime)));
+				}
+
+				if (UTextBlock* ScoreText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Score"))))
+				{
+					if (UGameInstance* GameInstance = GetGameInstance())
+					{
+						UTaskGameInstance* TGI = Cast<UTaskGameInstance>(GameInstance);
+						if (TGI)
+						{
+							ScoreText->SetText(FText::FromString(FString::Printf(TEXT("Score: %d"), TGI->GetTotalScore())));
+						}
+					}
+				}
+
+				if (UTextBlock* LevelIndexText = Cast<UTextBlock>(HUDWidget->GetWidgetFromName(TEXT("Level"))))
+				{
+					LevelIndexText->SetText(FText::FromString(FString::Printf(TEXT("Level: %d"), CurrentLevelIndex + 1)));
+				}
+			}
+		}
+	}
 }

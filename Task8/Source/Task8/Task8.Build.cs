@@ -12,7 +12,7 @@ public class Task8 : ModuleRules
 			"Core", "CoreUObject", "Engine", "InputCore", 
 			"NavigationSystem", "AIModule", "Niagara", "EnhancedInput",
             "GameplayAbilities", "GameplayTags", "GameplayTasks",
-			"PhysicsCore",
+			"PhysicsCore","UMG",
         });
     }
 }

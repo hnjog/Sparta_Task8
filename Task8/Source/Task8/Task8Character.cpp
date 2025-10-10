@@ -15,6 +15,7 @@
 #include "Abilities/GameplayAbility.h"
 #include "AbilitySystemComponent.h"
 #include "GAS/TaskAttributeSet.h"
+#include "TaskGameState.h"
 
 ATask8Character::ATask8Character()
 {
@@ -143,6 +144,12 @@ void ATask8Character::Dead()
 	}
 
 	SetLifeSpan(RagdollLifeTime);
+
+	ATaskGameState* TGS = GetWorld() ? GetWorld()->GetGameState<ATaskGameState>() : nullptr;
+	if (TGS)
+	{
+		TGS->OnGameOver();
+	}
 }
 
 void ATask8Character::SetOriginSpeed()

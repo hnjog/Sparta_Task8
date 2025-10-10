@@ -35,12 +35,11 @@ public:
 
 	void EndLevel();
 
+	void UpdateHUD();
+
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	float LevelDuration;
-
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
-	float RestDuration;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Level")
 	float SpawnEnemyDuration;
@@ -53,5 +52,5 @@ protected:
 
 	FTimerHandle LevelTimerHandle;
 	FTimerHandle SpawnEnemyTimerHandle;
-	FTimerHandle RestTimerHandle;
+	FTimerHandle HUDUpdateTimerHandle;
 };

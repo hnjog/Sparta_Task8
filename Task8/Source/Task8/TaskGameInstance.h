@@ -21,6 +21,7 @@ public:
 	void AddToScore(int32 Amount);
 
 	FORCEINLINE int32 GetTotalScore() { return TotalScore; }
+	FORCEINLINE void ResetTotalScore() { TotalScore = 0; }
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "GameData")
