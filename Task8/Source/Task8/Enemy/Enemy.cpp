@@ -203,6 +203,7 @@ void AEnemy::Die(bool bFromSelfDestruct)
 			if (ATaskGameState* GameState = World->GetGameState<ATaskGameState>())
 			{
 				GameState->SpawnItem(GetActorLocation());
+				GameState->AddScore(PointValue);
 			}
 		}
 	}

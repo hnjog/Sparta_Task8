@@ -96,6 +96,9 @@ protected:
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "GAS")
     float StartHealth = 100.f;
 
+    UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Enemy|Point")
+    int32 PointValue = 50;
+
     UPROPERTY()
     TObjectPtr<APawn> TargetPlayer = nullptr;
 

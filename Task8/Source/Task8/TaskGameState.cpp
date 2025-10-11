@@ -13,7 +13,7 @@
 ATaskGameState::ATaskGameState()
 {
 	LevelDuration = 20.0f; // 한 레벨당 30초
-	SpawnEnemyDuration = 10.0f;
+	SpawnEnemyDuration = 5.0f;
 	CurrentLevelIndex = 0;
 }
 
@@ -88,6 +88,8 @@ void ATaskGameState::StartLevel()
 		if (AEnemySpawnVolume* ESV = Cast<AEnemySpawnVolume>(FoundVolumes[0]))
 		{
 			float levelSpawnDuration = FMath::Clamp(SpawnEnemyDuration - (CurrentLevelIndex - 1), 0.5f, 20.0f);
+
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Red, FString::Printf(TEXT("Enemy 스폰 시간 : %f"), levelSpawnDuration));
 
 			GetWorldTimerManager().SetTimer(
 				SpawnEnemyTimerHandle,
