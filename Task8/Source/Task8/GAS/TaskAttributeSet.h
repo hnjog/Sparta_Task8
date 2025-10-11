@@ -24,8 +24,16 @@ public:
 	UTaskAttributeSet();
 
 	ATTRIBUTE_ACCESSORS(UTaskAttributeSet, Health)
+	ATTRIBUTE_ACCESSORS(UTaskAttributeSet, MaxHealth)
+
+protected:
+	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attr")
 	FGameplayAttributeData Health;
+
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Attr")
+	FGameplayAttributeData MaxHealth;
 };
