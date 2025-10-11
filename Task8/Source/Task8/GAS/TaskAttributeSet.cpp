@@ -12,11 +12,11 @@ UTaskAttributeSet::UTaskAttributeSet()
 	MaxHealth.SetCurrentValue(100.f);
 }
 
-void UTaskAttributeSet::PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data)
+void UTaskAttributeSet::PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue)
 {
-	if (Data.EvaluatedData.Attribute == GetHealthAttribute())
+	if (Attribute == GetHealthAttribute())
 	{
-		const float Clamped = FMath::Clamp(GetHealth(), 0.f, GetMaxHealth());
-		SetHealth(Clamped);
+		const float MaxHP = GetMaxHealth();
+		NewValue = FMath::Clamp(NewValue, 0.f, MaxHP);
 	}
 }

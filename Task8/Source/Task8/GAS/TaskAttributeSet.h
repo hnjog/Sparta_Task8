@@ -27,7 +27,7 @@ public:
 	ATTRIBUTE_ACCESSORS(UTaskAttributeSet, MaxHealth)
 
 protected:
-	virtual void PostGameplayEffectExecute(const FGameplayEffectModCallbackData& Data) override;
+	virtual void PreAttributeChange(const FGameplayAttribute& Attribute, float& NewValue) override;
 
 protected:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Attr")
