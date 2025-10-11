@@ -47,6 +47,14 @@ public:
     void Die(bool bFromSelfDestruct);
     void EnterRagdollAndScheduleDestroy();
 
+    UFUNCTION() 
+    void ShowOverhead();
+
+    UFUNCTION() 
+    void HideOverhead();
+
+    void UpdateOverheadHP();
+
 public:	
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
@@ -55,9 +63,11 @@ protected:
     UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
     TObjectPtr<UAbilitySystemComponent> AbilitySystem = nullptr;
 
-
     UPROPERTY()
     TObjectPtr<class UTaskAttributeSet> AttributeSet = nullptr;
+
+    UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+    TObjectPtr<class UWidgetComponent> OverheadWidget;
 
     UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Enemy|Move")
     float BaseSpeed = 250.f;
@@ -88,4 +98,6 @@ protected:
 
     UPROPERTY()
     TObjectPtr<APawn> TargetPlayer = nullptr;
+
+    FTimerHandle HPUITimerHandle;
 };

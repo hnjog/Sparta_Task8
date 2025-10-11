@@ -59,6 +59,8 @@ protected:
 
 	void Dead();
 
+	void UpdateOverheadHP();
+
 	void SetOriginSpeed();
 
 	UFUNCTION()
@@ -73,6 +75,10 @@ protected:
 	/** Camera boom positioning the camera above the character */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	TObjectPtr<class USpringArmComponent> CameraBoom;
+
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "UI")
+	TObjectPtr<class UWidgetComponent> OverheadWidget;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "GAS")
 	TObjectPtr <class UAbilitySystemComponent> ASC;

@@ -16,6 +16,8 @@
 #include "AbilitySystemComponent.h"
 #include "GAS/TaskAttributeSet.h"
 #include "TaskGameState.h"
+#include "Components/WidgetComponent.h"
+#include "Components/TextBlock.h"
 
 ATask8Character::ATask8Character()
 {
@@ -51,6 +53,10 @@ ATask8Character::ATask8Character()
 
 	ASC = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	AttributeSet = CreateDefaultSubobject<UTaskAttributeSet>(TEXT("AttributeSet"));
+
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidget->SetupAttachment(GetMesh());
+	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
 }
 
 void ATask8Character::BeginPlay()
@@ -58,6 +64,7 @@ void ATask8Character::BeginPlay()
 	Super::BeginPlay();
 
 	SetOriginSpeed();
+	UpdateOverheadHP();
 
 	OnTakeAnyDamage.AddDynamic(this, &ATask8Character::OnAnyDamageTaken);
 
@@ -66,6 +73,8 @@ void ATask8Character::BeginPlay()
 		ASC->InitAbilityActorInfo(this, this);
 		const FGameplayAttribute HealthAttr = UTaskAttributeSet::GetHealthAttribute();
 		ASC->SetNumericAttributeBase(HealthAttr, StartHealth);
+		const FGameplayAttribute MaxHealthAttr = UTaskAttributeSet::GetMaxHealthAttribute();
+		ASC->SetNumericAttributeBase(MaxHealthAttr, StartHealth);
 
 		ASC->GetGameplayAttributeValueChangeDelegate(HealthAttr)
 			.AddUObject(this, &ATask8Character::OnHealthChanged);
@@ -101,9 +110,6 @@ void ATask8Character::OnHealthChanged(const FOnAttributeChangeData& Data)
 
 	const float NewHealth = Data.NewValue;
 
-	UE_LOG(LogTemp, Warning, TEXT("Player Now Hp : %f"), NewHealth);
-	UE_LOG(LogTemp, Warning, TEXT("Player Prev Hp : %f"), Data.OldValue);
-
 	if (NewHealth <= 0.f)
 	{
 		Dead();
@@ -113,6 +119,8 @@ void ATask8Character::OnHealthChanged(const FOnAttributeChangeData& Data)
 		bJumping = true;
 		Jump();
 	}
+
+	UpdateOverheadHP();
 }
 
 void ATask8Character::Dead()
@@ -149,6 +157,23 @@ void ATask8Character::Dead()
 	if (TGS)
 	{
 		TGS->OnGameOver();
+	}
+}
+
+void ATask8Character::UpdateOverheadHP()
+{
+	if (OverheadWidget == nullptr)
+		return;
+
+	UUserWidget* OverHeadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	if (OverHeadWidgetInstance == nullptr)
+		return;
+
+	if (UTextBlock* HPText = Cast<UTextBlock>(OverHeadWidgetInstance->GetWidgetFromName("OverHeadHP")))
+	{
+		float Health = ASC->GetNumericAttribute(UTaskAttributeSet::GetHealthAttribute());
+		float MaxHealth = ASC->GetNumericAttribute(UTaskAttributeSet::GetMaxHealthAttribute());
+		HPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), Health, MaxHealth)));
 	}
 }
 

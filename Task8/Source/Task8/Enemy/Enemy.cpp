@@ -7,6 +7,8 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Components/CapsuleComponent.h"
 #include "../TaskGameState.h"
+#include "Components/WidgetComponent.h"
+#include "Components/TextBlock.h"
 
 AEnemy::AEnemy()
 {
@@ -35,6 +37,12 @@ AEnemy::AEnemy()
 
 	AbilitySystem = CreateDefaultSubobject<UAbilitySystemComponent>(TEXT("ASC"));
 	AttributeSet = CreateDefaultSubobject<UTaskAttributeSet>(TEXT("AttributeSet"));
+
+	OverheadWidget = CreateDefaultSubobject<UWidgetComponent>(TEXT("OverheadWidget"));
+	OverheadWidget->SetupAttachment(GetMesh());
+	OverheadWidget->SetWidgetSpace(EWidgetSpace::Screen);
+	OverheadWidget->SetVisibility(false);
+	OverheadWidget->SetHiddenInGame(true);
 }
 
 // Called when the game starts or when spawned
@@ -77,6 +85,8 @@ void AEnemy::InitASCAndAttributes()
 	{
 		const FGameplayAttribute HealthAttr = UTaskAttributeSet::GetHealthAttribute();
 		AbilitySystem->SetNumericAttributeBase(HealthAttr, StartHealth);
+		const FGameplayAttribute MaxHealthAttr = UTaskAttributeSet::GetMaxHealthAttribute();
+		AbilitySystem->SetNumericAttributeBase(MaxHealthAttr, StartHealth);
 	}
 }
 
@@ -108,6 +118,8 @@ void AEnemy::OnHealthChanged(const FOnAttributeChangeData& Data)
 	{
 		Die(false);
 	}
+
+	UpdateOverheadHP();
 }
 
 // Called every frame
@@ -222,4 +234,58 @@ void AEnemy::EnterRagdollAndScheduleDestroy()
 	}
 
 	SetLifeSpan(RagdollLifeTime);
+}
+
+void AEnemy::ShowOverhead()
+{
+	if (!OverheadWidget) 
+		return;
+
+	OverheadWidget->SetHiddenInGame(false);
+	OverheadWidget->SetVisibility(true);
+
+	if (UUserWidget* UW = Cast<UUserWidget>(OverheadWidget->GetUserWidgetObject()))
+	{
+		UW->SetVisibility(ESlateVisibility::Visible);
+	}
+}
+
+void AEnemy::HideOverhead()
+{
+	if (!OverheadWidget) 
+		return;
+
+	OverheadWidget->SetHiddenInGame(true);
+	OverheadWidget->SetVisibility(false);
+
+	if (UUserWidget* UW = Cast<UUserWidget>(OverheadWidget->GetUserWidgetObject()))
+	{
+		UW->SetVisibility(ESlateVisibility::Collapsed);
+	}
+}
+
+void AEnemy::UpdateOverheadHP()
+{
+	if (OverheadWidget == nullptr)
+		return;
+
+	UUserWidget* OverHeadWidgetInstance = OverheadWidget->GetUserWidgetObject();
+	if (OverHeadWidgetInstance == nullptr)
+		return;
+
+	if (UTextBlock* HPText = Cast<UTextBlock>(OverHeadWidgetInstance->GetWidgetFromName("OverHeadHP")))
+	{
+		float Health = AbilitySystem->GetNumericAttribute(UTaskAttributeSet::GetHealthAttribute());
+		float MaxHealth = AbilitySystem->GetNumericAttribute(UTaskAttributeSet::GetMaxHealthAttribute());
+		HPText->SetText(FText::FromString(FString::Printf(TEXT("%.0f / %.0f"), Health, MaxHealth)));
+	}
+
+	ShowOverhead();
+	GetWorldTimerManager().SetTimer(
+		HPUITimerHandle,
+		this,
+		&AEnemy::HideOverhead,
+		5.0,
+		false
+	);
 }
